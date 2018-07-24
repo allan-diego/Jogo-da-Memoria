@@ -1,5 +1,8 @@
 package com.example.god.jogodamemoria;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 
 import java.util.ArrayList;
@@ -11,6 +14,8 @@ import java.util.TimerTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -18,12 +23,10 @@ import android.widget.Toast;
 
 public class Game extends AppCompatActivity implements View.OnClickListener {
 
-    private List<ImageButton> cards;
-
     private GridLayout grid;
     private ImageButton oldCardButton;
     public Estado estado;
-    public int resources[] = {
+    public int resources[] = new int[]{
             R.mipmap.calunga,
             R.mipmap.capela_bjesus,
             R.mipmap.capela_rosario,
@@ -47,6 +50,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         final int NUMBER_OF_CARDS = this.resources.length * 2;
 
+        ArrayList<ImageButton> cards;
         cards = new ArrayList<>(NUMBER_OF_CARDS);
 
         for (int i = 0; i < NUMBER_OF_CARDS; i++) {
@@ -61,7 +65,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         Collections.shuffle(cards);
 
-        for(ImageButton button : this.cards ){
+        for(ImageButton button : cards){
             grid.addView(button);
         }
     }
@@ -72,10 +76,22 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         if (v instanceof ImageButton) {
             Context context = getApplicationContext();
             final ImageButton newCardButton = (ImageButton) v;
-            CardInfo newCardInfo = (CardInfo) newCardButton.getTag();
+            final CardInfo newCardInfo = (CardInfo) newCardButton.getTag();
 
             if (estado == Estado.NAO_VIRADA) {
-                newCardButton.setImageResource(newCardInfo.getResource());
+                final ObjectAnimator oa1 = ObjectAnimator.ofFloat(newCardButton, "scaleX", 1f, 0f);
+                final ObjectAnimator oa2 = ObjectAnimator.ofFloat(newCardButton, "scaleX", 0f, 1f);
+                oa1.setInterpolator(new DecelerateInterpolator());
+                oa2.setInterpolator(new AccelerateDecelerateInterpolator());
+                oa1.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        newCardButton.setImageResource(newCardInfo.getResource());
+                        oa2.start();
+                    }
+                });
+                oa1.start();
                 newCardButton.setEnabled(false);
                 oldCardButton = newCardButton;
 
@@ -83,6 +99,19 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                 estado = Estado.VIRADA;
 
             } else if (estado == Estado.VIRADA) {
+                final ObjectAnimator oa1 = ObjectAnimator.ofFloat(newCardButton, "scaleX", 1f, 0f);
+                final ObjectAnimator oa2 = ObjectAnimator.ofFloat(newCardButton, "scaleX", 0f, 1f);
+                oa1.setInterpolator(new DecelerateInterpolator());
+                oa2.setInterpolator(new AccelerateDecelerateInterpolator());
+                oa1.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        newCardButton.setImageResource(newCardInfo.getResource());
+                        oa2.start();
+                    }
+                });
+                oa1.start();
                 if (oldCardButton != newCardButton) {
                     if (((CardInfo) oldCardButton.getTag()).getResource() == newCardInfo.getResource()) {
                         newCardButton.setImageResource(newCardInfo.getResource());
@@ -118,6 +147,3 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         }
     }
 }
-
-
-
